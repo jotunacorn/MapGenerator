@@ -1,30 +1,63 @@
 package se.afsandeberg.kotlin.mapgenerator
 
-import javafx.animation.Interpolator
-import javafx.scene.paint.Color
-import javafx.util.Duration
+import javafx.scene.layout.StackPane
+import javafx.scene.shape.Rectangle
 import tornadofx.*
 
+
 class MainView : View("Map Generator") {
+
+    private val screenHeight = 768.0
+    private val screenWidth = 1024.0
+    private val pointsX = 54
+    private val pointsY = 54
+
+    var gridWidth = screenWidth / pointsX
+    var gridHeight = screenHeight / pointsY
+
     override val root = stackpane {
         group {
-            val quad = quadcurve {
-                startX = 0.0
-                startY = 150.0
-                endX = 150.0
-                endY = 150.0
-                controlX = 75.0
-                controlY = 0.0
-                fill = Color.BURLYWOOD
-            }
-            timeline {
-                keyframe(Duration.seconds(5.0)) {
-                    keyvalue(quad.startXProperty(), 75.0, interpolator = Interpolator.EASE_BOTH)
-                    keyvalue(quad.endXProperty(), 75.0, interpolator = Interpolator.EASE_BOTH)
-                    isAutoReverse = true
-                    cycleCount = 4
+            // initialize playfield
+            val heightMap = HeightMap(pointsX, pointsY)
+            for (i in 0 until pointsX) {
+                for (j in 0 until pointsY) {
+                    var value = heightMap.map[i][j]
+                    if (value == null) {
+                        value = 0.0
+                    }
+                    value += Math.abs(heightMap.minValue)
+
+                    value /= heightMap.maxValue + Math.abs(heightMap.minValue)
+                    // create node
+                    val node = RectangleNode(i * gridWidth, j * gridHeight, gridWidth, gridHeight, value)
+
+                    // add node to group
+                    add(node)
+
                 }
             }
         }
+    }
+
+    class RectangleNode(x: Double, y: Double, width: Double, height: Double, value: Double) : StackPane() {
+
+        init {
+            // create rectangle
+            val rectangle = Rectangle(width, height)
+            val color = c(value, 0.0, 0.0)
+            rectangle.stroke = color
+            rectangle.fill = color
+
+            // create label
+            //val label = Label(name)
+
+            // set position
+            translateX = x
+            translateY = y
+
+            children.add(rectangle)
+
+        }
+
     }
 }
